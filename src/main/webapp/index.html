@@ -1,0 +1,226 @@
+<html ng-app="myApp">
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.0/angular.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" 
+    	integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" 
+    	crossorigin="anonymous">
+    
+    <script src="company.js"></script>
+    
+    <script src="scripts/ng-table.min.js"></script>
+    <link rel="stylesheet" href="scripts/ng-table.css" />
+    <script src="scripts/angular-resource.min.js"></script>
+  </head>
+  <body ng-controller="CompanyController">
+ 
+ 
+ 	<div class="container">
+	    <div class="page-header">
+	        <h1>Company Rest Sample - Chris Skibinski</h1>
+	    </div>
+    
+    
+	    <!-- CREATE/EDIT/VIEW form -->
+		<div class="row">	
+			<div class="col-md-8" ng-show='singleMode'>
+				<form name="form" novalidate role="form" class="form-horizontal">
+				
+					<h3 ng-show='companyTmp.id != null'>Company ID = {{companyTmp.id}}</h3>
+					<h3 ng-show='companyTmp.id == null'>Create Company</h3>
+					
+					<div class="form-group" ng-class="{'has-error': form.name.$invalid}">
+				    	<label class="{{cssLeft}} control-label" >Name</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" name="name" 
+				        		ng-model="companyTmp.name" 
+				        		ng-disabled='!editMode'
+				        		required
+				        		ng-minlength=1>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error': form.address.$invalid}">
+				    	<label class="{{cssLeft}} control-label" >Address</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" name="address" 
+				        		ng-model="companyTmp.address" 
+				        		ng-disabled='!editMode'
+				        		required
+				        		ng-minlength=1>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error': form.city.$invalid}">
+				    	<label class="{{cssLeft}} control-label" >City</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" name="city" 
+					        	ng-model="companyTmp.city" 
+					        	ng-disabled='!editMode'
+					        	required
+					        	ng-minlength=1>
+						</div>
+					</div>
+					<div class="form-group" ng-class="{'has-error': form.country.$invalid}">
+				    	<label class="{{cssLeft}} control-label" >Country</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" name="country" 
+				        		ng-model="companyTmp.country" 
+				        		ng-disabled='!editMode'
+				        		required
+				        		ng-minlength=1>
+						</div>
+					</div>
+					<div class="form-group">
+				    	<label class="{{cssLeft}} control-label" >Email</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" ng-model="companyTmp.email" ng-disabled='!editMode'>
+						</div>
+					</div>
+					<div class="form-group">
+				    	<label class="{{cssLeft}} control-label" >Phone number</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" ng-model="companyTmp.phoneNumber" ng-disabled='!editMode'>
+						</div>
+					</div>
+					
+					<div class="form-group" ng-show='!editMode' >
+				    	<label class="{{cssLeft}} control-label" >Beneficial owners</label>
+						<div class="{{cssRight}}">
+							<ul>
+								<li ng-repeat="owner in companyTmp.owners">
+					        		{{::owner.name}}
+					        	</li>
+							</ul>
+						</div>
+					</div>
+					
+					<div class="clearfix">
+					    <button class="btn btn-primary  pull-right  {{cssLeft}}" 
+					    		type="button"
+					    		ng-show='editMode'
+					    		ng-disabled="form.$invalid"
+					    		ng-click="companyCreateSave()">
+					        <span class="glyphicon glyphicon-flash"></span>&nbsp;
+					        <span>Create or Edit</span>
+					    </button>
+					    
+					    <button class="btn btn-primary  pull-right  {{cssLeft}}" 
+					    		type="button"
+					    		ng-show='!editMode'
+					    		ng-click="companyHide()">
+					        <span class="glyphicon glyphicon-flash"></span>&nbsp;
+					        <span>Hide</span>
+					    </button>
+					</div>
+					<hr>
+				</form>
+			</div>
+		</div>
+		
+		<!-- ADD beneficial owner form -->
+		<div class="row">	
+			<div class="col-md-8" ng-show='singleOwnerMode'>
+				<form name="formOwner" novalidate role="form" class="form-horizontal">
+				
+					<h3 ng-show='companyTmp.id != null'>Add Owner to Company ID = {{companyTmp.id}}</h3>					
+					<div class="form-group" ng-class="{'has-error': formOwner.name.$invalid}">
+				    	<label class="{{cssLeft}} control-label" >Owner name</label>
+						<div class="{{cssRight}}">
+				        	<input type="text" class="form-control" name="name" 
+				        		ng-model="companyOwnerTmp.name" 
+				        		required
+				        		ng-minlength=1>
+						</div>
+					</div>
+					
+					<div class="clearfix">
+					    <button class="btn btn-primary  pull-right  {{cssLeft}}" 
+					    		type="button"
+					    		ng-disabled="form.$invalid"
+					    		ng-click="companyOwnerAddSave()">
+					        <span class="glyphicon glyphicon-flash"></span>&nbsp;
+					        <span>Add</span>
+					    </button>
+					</div>
+					<hr>
+				</form>
+			</div>
+		</div>
+
+		<!-- Table -->
+	    <div class="row">
+	        <div class="col-md-12 col-lg-12">
+	            
+			    <div class="{{cssRight}}">
+			    	<p class="lead" >Companies .size={{companies.length}}</p>
+			    </div>
+			
+				<div class="clearfix">
+				    <button class="btn btn-primary  pull-right  {{cssLeft}}" 
+				    		type="button"
+				    		ng-click="companyCreate()">
+				        <span class="glyphicon glyphicon-flash"></span>&nbsp;
+				        <span>Create a new Company</span>
+				    </button>
+				</div>
+			        
+			    <div class="table-responsive">    
+			 		<table ng-table="tableParams" 
+			 				class="table table-striped table-hover table-condensed text-center" >
+			   			<tbody>
+			       			<tr ng-repeat="company in companies">
+			       			              	
+			       			    <td data-title="'ID'">
+			               			<a ng-click="companyDetail(company.id)">{{::company.id}}</a>
+			              		</td>	
+			              		<td data-title="'Name'" >
+			               			<a ng-click="companyDetail(company.id)">{{::company.name}}</a>
+			              		</td>
+			              		<td data-title="'Address'" >
+			               			{{::company.address}}
+			              		</td>
+			              		<td data-title="'City'" >
+			               			{{::company.city}}
+			              		</td>
+			              		<td data-title="'Country'" >
+			               			{{::company.country}}
+			              		</td>
+			              		<td data-title="'Email'" >
+			               			{{::company.email}}
+			              		</td>
+			              		<td data-title="'Phone number'" >
+			               			{{::company.phoneNumber}}
+			              		</td>
+			              		<td data-title="'Owners'" >
+			               			{{::company.owners.length}}
+			              		</td>
+			                 	    
+			           			<td data-title="">		                     
+			                   		<button type="button"
+			                   				ng-click="companyDetail(company.id)"
+			                             	class="btn btn-info">
+			                         	<span class="glyphicon glyphicon-eye-open"></span>&nbsp;
+			                         	<span translate="entity.action.view"> View</span>
+			                     	</button>
+			                     	<button type="button"
+			                     	       	ng-click="companyEdit(company.id)"
+			                             	class="btn btn-primary">
+			                         	<span class="glyphicon glyphicon-pencil"></span>&nbsp;
+			                         	<span translate="entity.action.edit"> Edit</span>
+			                     	</button>
+			                     	<button type="button"
+			                     	       	ng-click="companyOwnerAdd(company)"
+			                             	class="btn btn-primary">
+			                         	<span class="glyphicon glyphicon-pencil"></span>&nbsp;
+			                         	<span translate="entity.action.edit"> Add Owner</span>
+			                     	</button>
+			               		</td>
+			       			</tr>
+			      		</tbody>
+			  		</table>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+	
+  </body>
+</html>
